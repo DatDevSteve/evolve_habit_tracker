@@ -1,7 +1,6 @@
 import 'package:evolve_fitness_app/screen_manager.dart';
 import 'package:evolve_fitness_app/signup.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,8 +13,11 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
+  
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
@@ -55,7 +57,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         ? media.width * 0.85
                         : 620),
                     height: (media.height < 690 && media.width < 1000
-                        ? media.height * 0.55
+                        ? media.height * 0.60
                         : 350),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -167,7 +169,8 @@ class _WelcomePageState extends State<WelcomePage> {
                                   ),
                                   height: 50,
                                   minWidth: 390,
-                                  onPressed: () async {
+                                  onPressed: _isLoading ? null : () async {
+                                    setState(() => _isLoading = true);
                                     final emailID = emailController.text;
                                     final passwd = passwdController.text;
 
@@ -183,7 +186,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                       );
                                       return;
                                     }
-
+                                    
                                     try {
                                       final AuthResponse response =
                                           await supabase.auth
@@ -191,18 +194,14 @@ class _WelcomePageState extends State<WelcomePage> {
                                                 email: emailID,
                                                 password: passwd,
                                               );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("Loading"), duration: Duration(seconds: 15),),
-                                      );
+                                      
                                       if (response.session != null) {
-                                        final usr = response.user;
+                                        final usr = response.user?.userMetadata?['display_name'];
                                         print("//INFO | USER LOGGED IN");
                                         ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        SnackBar(content: Text("Welcome back!"), duration: Duration(seconds: 5),),
+                                        SnackBar(content: Text("Welcome back! $usr"), duration: Duration(seconds: 5),),
                                       );
                                         Navigator.of(context).pushReplacement(
                                           MaterialPageRoute(
@@ -217,6 +216,8 @@ class _WelcomePageState extends State<WelcomePage> {
                                         SnackBar(content: Text("$e")),
                                       );
                                       print("//ERROR | $e ");
+                                    } finally {
+                                      setState(() => _isLoading = false);
                                     }
                                   },
                                   child: Text(
@@ -243,7 +244,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                 ),
                                 height: 10,
                                 minWidth: 200,
-                                onPressed: () {
+                                onPressed: _isLoading ? null: () {
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
                                       builder: (context) => SignUpPage(),
@@ -261,6 +262,13 @@ class _WelcomePageState extends State<WelcomePage> {
                               ),
                             ),
                           ),
+                          SizedBox(height: 10),
+                          if (_isLoading)
+                            LinearProgressIndicator(
+                              backgroundColor: Color.fromRGBO(35, 35, 35, 1),
+                              color: Color.fromRGBO(120, 225, 128, 1),
+                            )
+                          
                         ],
                       ),
                     ),

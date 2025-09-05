@@ -2,7 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:evolve_fitness_app/screen_manager.dart';
 import 'package:evolve_fitness_app/welcome_login.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,7 +16,10 @@ class _SignUpPageState extends State<SignUpPage> {
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
   final usrController = TextEditingController();
+  bool _isLoading = false;
+
   @override
+
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
     final media = MediaQuery.of(context).size;
@@ -192,7 +194,8 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                           ),
-                          //LOGIN BUTTON:
+
+                          //SIGN UP BUTTON:
                           Padding(
                             padding: const EdgeInsets.all(5.0),
                             child: SizedBox(
@@ -208,7 +211,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                   height: 50,
                                   minWidth: 390,
-                                  onPressed: () async {
+                                  onPressed: _isLoading ? null: () async {
+                                    setState(() => _isLoading = true);
                                     final emailID = emailController.text;
                                     final passw = passwdController.text;
                                     final usrName = usrController.text;
@@ -236,19 +240,27 @@ class _SignUpPageState extends State<SignUpPage> {
                                             password: passw,
                                             data: {"display_name": usrName},
                                           );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("Loading"), duration: Duration(seconds: 15),),
-                                      );
+                                      
                                       if (res.user != null) {
                                         final usr = res.user;
+                                        final usrid = usr?.id;
+                                        await supabase.from("user_data").insert({
+                                        'uuid' : usrid,
+                                        'user_name': '$usrName',
+                                        'circle_id': '0000',
+                                      });
                                         print("INFO | USER SIGNED UP $usr");
+                                        print("INFO | ADDED USER TO DATABASE");
                                         ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("Welcome to Evolve, $usrName"), duration: Duration(seconds: 5),),
-                                      );
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "Welcome to Evolve, $usrName",
+                                            ),
+                                            duration: Duration(seconds: 5),
+                                          ),
+                                        );
                                         Navigator.of(context).pushReplacement(
                                           MaterialPageRoute(
                                             builder: (context) => MainScreen(),
@@ -262,6 +274,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                         SnackBar(content: Text("$e")),
                                       );
                                       print("ERROR | $e");
+
+                                    } finally {
+                                      _isLoading = false;
                                     }
                                   },
                                   child: Text(
@@ -288,7 +303,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 height: 10,
                                 minWidth: 200,
-                                onPressed: () {
+                                onPressed: _isLoading ? null : () {
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
                                       builder: (context) => WelcomePage(),
@@ -306,6 +321,13 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                           ),
+                          SizedBox(height: 10),
+                          if (_isLoading)
+                            LinearProgressIndicator(
+                              backgroundColor: Color.fromRGBO(35, 35, 35, 1),
+                              color: Color.fromRGBO(120, 225, 128, 1),
+                            )
+                          
                         ],
                       ),
                     ),

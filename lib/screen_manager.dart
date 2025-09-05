@@ -5,7 +5,6 @@ import 'package:evolve_fitness_app/screens/settings_screen.dart';
 import 'package:evolve_fitness_app/screens/stats_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -34,6 +33,8 @@ class _MainScreenState extends State<MainScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: BottomBar(
+        width: 350,
+        borderRadius: BorderRadius.circular(15),
         barColor: Color.fromRGBO(22, 25, 15, 1),
         body: (context, controller) =>
             TabBarView(controller: tabController, children: [
@@ -44,14 +45,22 @@ class _MainScreenState extends State<MainScreen>
               NewHabitScreen(),
             ]),
         child: TabBar(
+          enableFeedback: false,
+          indicator: null,
+          unselectedLabelColor: Colors.white,
+          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 0),
+          indicatorColor: Colors.transparent,
+          //labelPadding: EdgeInsets.all(20),
+          labelColor: Color.fromRGBO(120, 225, 128, 1),
           controller: tabController,
           tabs: [
-            Icon(Icons.person),
-            Icon(Icons.bar_chart),
-            Icon(Icons.data_saver_off_rounded),
-            Icon(Icons.settings),
+            Icon(Icons.account_circle_rounded,size: 30, applyTextScaling: true,),
+            Icon(Icons.bar_chart,size: 30, applyTextScaling: true),
+            Icon(Icons.data_saver_off_rounded, size: 30, applyTextScaling: true),
+            Icon(Icons.settings, size: 30, applyTextScaling: true),
             Icon(
               Icons.add_circle_sharp,
+              size: 35,
               color: Color.fromRGBO(120, 225, 128, 1),
             ),
           ],

@@ -37,6 +37,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
+        colorSchemeSeed:Color.fromRGBO(120, 225, 128, 1) ,
         highlightColor: Color.fromRGBO(120, 225, 128, 1),
         textTheme: GoogleFonts.ibmPlexSansTextTheme(
           Theme.of(context).textTheme,
