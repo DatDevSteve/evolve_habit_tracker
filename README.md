@@ -1,16 +1,16 @@
-# evolve_fitness_app
+# Evolve- A Collaborative Habit Tracker (BETA)
 
-A new Flutter project.
+A digital approach towards inculcating good habits
 
-## Getting Started
+## ℹ️Introduction
 
-This project is a starting point for a Flutter application.
+Evolve is a digital habit-tracking app that lets you organize your daily habits into a checklist and mark them as completed throughout the day.
+Beyond just tracking your personal routines, this app helps you build consistency through a **Streak Score** — which grows each day you successfully complete all your listed habits.
+You can also connect with others by adding them to your **Circle**, allowing you to share and follow each other’s habit-building journeys.
 
-A few resources to get you started if this is your first Flutter project:
+## ⚙️The Tech Stack
+* **Flutter**: for app framework.
+* **Supabase**: for user management and backend.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ Current Project Status
+This app is yet to be completed with all the listed features and further optimisation.
