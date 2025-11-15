@@ -13,7 +13,6 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  
   final emailController = TextEditingController();
   final passwdController = TextEditingController();
   bool _isLoading = false;
@@ -29,7 +28,7 @@ class _WelcomePageState extends State<WelcomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: media.height * 0.2),
+            SizedBox(height: media.height * 0.17),
             Center(
               child: Text(
                 "EVOLVE",
@@ -40,7 +39,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 ),
               ),
             ),
-            SizedBox(height: media.height * 0.1),
+            SizedBox(height: media.height * 0.28),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 1, 2, 0),
               child: Card(
@@ -57,7 +56,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         ? media.width * 0.85
                         : 620),
                     height: (media.height < 690 && media.width < 1000
-                        ? media.height * 0.60
+                        ? media.height * 0.50
                         : 350),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -116,12 +115,41 @@ class _WelcomePageState extends State<WelcomePage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(5.0),
-                            child: AutoSizeText(
-                              "Password",
-                              style: GoogleFonts.ibmPlexSans(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                            child: Row(
+                              children: [
+                                AutoSizeText(
+                                  "Password",
+                                  style: GoogleFonts.ibmPlexSans(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    if (emailController.text != "") {
+                                      AlertDialog(
+                                        title: Text("Forgot Password"),
+                                        content: Text(
+                                          "A password reset link has been sent over your given email",
+                                        ),
+                                      );
+                                      supabase.auth.resetPasswordForEmail(
+                                        emailController.text,
+                                      );
+                                    }
+                                    else{
+                                      AlertDialog(
+                                        title: Text("Forgot Password"),
+                                        content: Text(
+                                          "Please enter an email address in the email field and try again",
+                                        ),
+                                      );
+                                    }
+                                    
+                                  },
+                                  child: AutoSizeText("Forgot Password?"),
+                                ),
+                              ],
                             ),
                           ),
 
@@ -169,57 +197,113 @@ class _WelcomePageState extends State<WelcomePage> {
                                   ),
                                   height: 50,
                                   minWidth: 390,
-                                  onPressed: _isLoading ? null : () async {
-                                    setState(() => _isLoading = true);
-                                    final emailID = emailController.text;
-                                    final passwd = passwdController.text;
+                                  onPressed: _isLoading
+                                      ? () {
+                                          print("// AVOIDING REDUNDANCY");
+                                        }
+                                      : () async {
+                                          setState(() => _isLoading = true);
+                                          final emailID = emailController.text;
+                                          final passwd = passwdController.text;
 
-                                    if (emailID.isEmpty || passwd.isEmpty) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "All fields are required!",
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    
-                                    try {
-                                      final AuthResponse response =
-                                          await supabase.auth
-                                              .signInWithPassword(
-                                                email: emailID,
-                                                password: passwd,
+                                          if (emailID.isEmpty ||
+                                              passwd.isEmpty) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "All fields are required!",
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
+
+                                          try {
+                                            final AuthResponse response =
+                                                await supabase.auth
+                                                    .signInWithPassword(
+                                                      email: emailID,
+                                                      password: passwd,
+                                                    );
+
+                                            if (response.session != null) {
+                                              final usr = response
+                                                  .user
+                                                  ?.userMetadata?['display_name'];
+                                              print("//INFO | USER LOGGED IN");
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "Welcome back! $usr",
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 5,
+                                                  ),
+                                                ),
                                               );
-                                      
-                                      if (response.session != null) {
-                                        final usr = response.user?.userMetadata?['display_name'];
-                                        print("//INFO | USER LOGGED IN");
-                                        ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("Welcome back! $usr"), duration: Duration(seconds: 5),),
-                                      );
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (context) => MainScreen(),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("$e")),
-                                      );
-                                      print("//ERROR | $e ");
-                                    } finally {
-                                      setState(() => _isLoading = false);
-                                    }
-                                  },
+                                              Navigator.of(
+                                                context,
+                                              ).pushReplacement(
+                                                PageRouteBuilder(
+                                                  pageBuilder:
+                                                      (
+                                                        context,
+                                                        animation,
+                                                        secondaryAnimation,
+                                                      ) => MainScreen(),
+                                                  transitionsBuilder:
+                                                      (
+                                                        context,
+                                                        animation,
+                                                        secondaryAnimation,
+                                                        child,
+                                                      ) {
+                                                        const begin = Offset(
+                                                          0.0,
+                                                          1.0,
+                                                        );
+                                                        const end = Offset.zero;
+                                                        const curve =
+                                                            Curves.ease;
+                                                        var tween =
+                                                            Tween(
+                                                              begin: begin,
+                                                              end: end,
+                                                            ).chain(
+                                                              CurveTween(
+                                                                curve: curve,
+                                                              ),
+                                                            );
+                                                        return SlideTransition(
+                                                          position: animation
+                                                              .drive(tween),
+                                                          child: child,
+                                                        );
+                                                      },
+                                                  transitionDuration: Duration(
+                                                    milliseconds: 500,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(content: Text("$e")),
+                                            );
+                                            print("//ERROR | $e ");
+                                            setState(() {
+                                              _isLoading = false;
+                                            });
+                                          } finally {
+                                            setState(() => _isLoading = false);
+                                          }
+                                        },
                                   child: Text(
                                     "Login",
                                     style: GoogleFonts.ibmPlexSans(
@@ -244,13 +328,54 @@ class _WelcomePageState extends State<WelcomePage> {
                                 ),
                                 height: 10,
                                 minWidth: 200,
-                                onPressed: _isLoading ? null: () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => SignUpPage(),
-                                    ),
-                                  );
-                                },
+                                onPressed: _isLoading
+                                    ? () {
+                                        print("// AVOIDING REDUNDANCY");
+                                      }
+                                    : () {
+                                        Navigator.of(context).pushReplacement(
+                                          PageRouteBuilder(
+                                            pageBuilder:
+                                                (
+                                                  context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                ) => SignUpPage(),
+                                            transitionsBuilder:
+                                                (
+                                                  context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                  child,
+                                                ) {
+                                                  const begin = Offset(
+                                                    0.0,
+                                                    1.0,
+                                                  );
+                                                  const end = Offset.zero;
+                                                  const curve = Curves.ease;
+                                                  var tween =
+                                                      Tween(
+                                                        begin: begin,
+                                                        end: end,
+                                                      ).chain(
+                                                        CurveTween(
+                                                          curve: curve,
+                                                        ),
+                                                      );
+                                                  return SlideTransition(
+                                                    position: animation.drive(
+                                                      tween,
+                                                    ),
+                                                    child: child,
+                                                  );
+                                                },
+                                            transitionDuration: Duration(
+                                              milliseconds: 500,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                 child: AutoSizeText(
                                   "Sign Up",
                                   style: GoogleFonts.ibmPlexSans(
@@ -262,13 +387,7 @@ class _WelcomePageState extends State<WelcomePage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 10),
-                          if (_isLoading)
-                            LinearProgressIndicator(
-                              backgroundColor: Color.fromRGBO(35, 35, 35, 1),
-                              color: Color.fromRGBO(120, 225, 128, 1),
-                            )
-                          
+                          SizedBox(height: 5),
                         ],
                       ),
                     ),
@@ -276,6 +395,11 @@ class _WelcomePageState extends State<WelcomePage> {
                 ),
               ),
             ),
+            if (_isLoading)
+              LinearProgressIndicator(
+                backgroundColor: Color.fromRGBO(35, 35, 35, 1),
+                color: Color.fromRGBO(120, 225, 128, 1),
+              ),
           ],
         ),
       ),

@@ -1,10 +1,12 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:evolve_fitness_app/screens/home_screen.dart';
-import 'package:evolve_fitness_app/screens/new_habit.dart';
 import 'package:evolve_fitness_app/screens/profile_screen.dart';
 import 'package:evolve_fitness_app/screens/settings_screen.dart';
 import 'package:evolve_fitness_app/screens/stats_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,55 +15,72 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController tabController;
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 1;
+  static const List<Widget> _widgetOptions = <Widget>[
+    StatsScreen(),
+    HomeScreen(),
+  ];
+  final habitNameCtrl = TextEditingController();
+  final habitDescCtrl = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    tabController = TabController(initialIndex: 2,length: 5, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    tabController.dispose();
-    super.dispose();
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    
+    final supabase = Supabase.instance.client;
+
     return Scaffold(
-      body: BottomBar(
-        width: 350,
-        borderRadius: BorderRadius.circular(15),
-        barColor: Color.fromRGBO(22, 25, 15, 1),
-        body: (context, controller) =>
-            TabBarView(controller: tabController, children: [
-              ProfileScreen(),
-              StatsScreen(),
-              HomeScreen(),
-              SettingsScreen(),
-              NewHabitScreen(),
-            ]),
-        child: TabBar(
-          enableFeedback: false,
-          indicator: null,
-          unselectedLabelColor: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 0),
-          indicatorColor: Colors.transparent,
-          //labelPadding: EdgeInsets.all(20),
-          labelColor: Color.fromRGBO(120, 225, 128, 1),
-          controller: tabController,
-          tabs: [
-            Icon(Icons.account_circle_rounded,size: 30, applyTextScaling: true,),
-            Icon(Icons.bar_chart,size: 30, applyTextScaling: true),
-            Icon(Icons.data_saver_off_rounded, size: 30, applyTextScaling: true),
-            Icon(Icons.settings, size: 30, applyTextScaling: true),
-            Icon(
-              Icons.add_circle_sharp,
-              size: 35,
-              color: Color.fromRGBO(120, 225, 128, 1),
+      body: _widgetOptions.elementAt(_selectedIndex),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+        shape: CircularNotchedRectangle(),
+        color: Color.fromRGBO(22, 25, 15, 1),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            InkWell(
+              customBorder: RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(15),
+              ),
+              splashColor: null,
+              onTap: () => _onItemTapped(0),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Icon(
+                  Icons.bar_chart_rounded,
+                  color: _selectedIndex == 0
+                      ? Color.fromRGBO(120, 225, 128, 1)
+                      : Colors.white,
+                  size: 40,
+                ),
+              ),
+            ),
+            SizedBox(width: 50),
+            InkWell(
+              customBorder: RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(15),
+              ),
+              splashColor: null,
+              onTap: () => _onItemTapped(1),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Icon(
+                  Icons.checklist,
+                  color: _selectedIndex == 1
+                      ? Color.fromRGBO(120, 225, 128, 1)
+                      : Colors.white,
+                  size: 40,
+                ),
+              ),
             ),
           ],
         ),

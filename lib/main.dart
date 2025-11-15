@@ -1,6 +1,7 @@
 import 'package:evolve_fitness_app/screen_manager.dart';
-import 'package:evolve_fitness_app/welcome_login.dart';
+import 'package:evolve_fitness_app/welcome_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -9,7 +10,7 @@ Future<void> main() async {
     url: 'https://hhaqojnliqzluhwszgjc.supabase.co',
     anonKey: 'sb_publishable_kjH445LzWXNmxmFJTdy5uQ_Bs83NeHO',
   );
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -20,24 +21,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Widget _finalscreen;
-
-  @override
-  void initState() {
-    super.initState();
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session != null) {
-      _finalscreen = MainScreen();
-    } else {
-      _finalscreen = WelcomePage();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final session = Supabase.instance.client.auth.currentSession;
+    final Widget homeScreen = session != null ? MainScreen() : IntroScreen();
+
     return MaterialApp(
       theme: ThemeData(
-        colorSchemeSeed:Color.fromRGBO(120, 225, 128, 1) ,
+        colorSchemeSeed: Color.fromRGBO(120, 225, 128, 1),
         highlightColor: Color.fromRGBO(120, 225, 128, 1),
         textTheme: GoogleFonts.ibmPlexSansTextTheme(
           Theme.of(context).textTheme,
@@ -45,10 +36,10 @@ class _MyAppState extends State<MyApp> {
         tabBarTheme: TabBarThemeData(
           splashBorderRadius: BorderRadius.circular(15),
           indicatorColor: Color.fromRGBO(120, 225, 128, 1),
-        )
+        ),
       ),
       debugShowCheckedModeBanner: false,
-      home: _finalscreen,
+      home: homeScreen,
     );
   }
 }

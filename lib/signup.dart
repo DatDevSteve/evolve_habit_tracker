@@ -19,7 +19,6 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
 
   @override
-
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
     final media = MediaQuery.of(context).size;
@@ -30,7 +29,7 @@ class _SignUpPageState extends State<SignUpPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: media.height * 0.2),
+            SizedBox(height: media.height * 0.17),
             Center(
               child: Text(
                 "EVOLVE",
@@ -41,7 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
             ),
-            SizedBox(height: media.height * 0.1),
+            SizedBox(height: media.height * .16),
 
             // MAIN CARD WIDGET
             Padding(
@@ -211,74 +210,127 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                   height: 50,
                                   minWidth: 390,
-                                  onPressed: _isLoading ? null: () async {
-                                    setState(() => _isLoading = true);
-                                    final emailID = emailController.text;
-                                    final passw = passwdController.text;
-                                    final usrName = usrController.text;
+                                  onPressed: _isLoading
+                                      ? () {
+                                          print("// AVOIDING REDUNDANCY");
+                                        }
+                                      : () async {
+                                          setState(() => _isLoading = true);
+                                          final emailID = emailController.text;
+                                          final passw = passwdController.text;
+                                          final usrName = usrController.text;
 
-                                    if (emailID.isEmpty ||
-                                        passw.isEmpty ||
-                                        usrName.isEmpty) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "All fields are required!",
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
+                                          if (emailID.isEmpty ||
+                                              passw.isEmpty ||
+                                              usrName.isEmpty) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "All fields are required!",
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
 
-                                    try {
-                                      final AuthResponse res = await supabase
-                                          .auth
-                                          .signUp(
-                                            email: emailID,
-                                            password: passw,
-                                            data: {"display_name": usrName},
-                                          );
-                                      
-                                      if (res.user != null) {
-                                        final usr = res.user;
-                                        final usrid = usr?.id;
-                                        await supabase.from("user_data").insert({
-                                        'uuid' : usrid,
-                                        'user_name': '$usrName',
-                                        'circle_id': '0000',
-                                      });
-                                        print("INFO | USER SIGNED UP $usr");
-                                        print("INFO | ADDED USER TO DATABASE");
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              "Welcome to Evolve, $usrName",
-                                            ),
-                                            duration: Duration(seconds: 5),
-                                          ),
-                                        );
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (context) => MainScreen(),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text("$e")),
-                                      );
-                                      print("ERROR | $e");
+                                          try {
+                                            final AuthResponse res =
+                                                await supabase.auth.signUp(
+                                                  email: emailID,
+                                                  password: passw,
+                                                  data: {
+                                                    "display_name": usrName,
+                                                  },
+                                                );
 
-                                    } finally {
-                                      _isLoading = false;
-                                    }
-                                  },
+                                            if (res.user != null) {
+                                              final usr = res.user;
+                                              final usrid = usr?.id;
+                                              await supabase
+                                                  .from("user_data")
+                                                  .insert({
+                                                    'uuid': usrid,
+                                                    'user_name': '$usrName',
+                                                  });
+                                              print(
+                                                "INFO | USER SIGNED UP $usr",
+                                              );
+                                              print(
+                                                "INFO | ADDED USER TO DATABASE",
+                                              );
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "Welcome to Evolve, $usrName",
+                                                  ),
+                                                  duration: Duration(
+                                                    seconds: 5,
+                                                  ),
+                                                ),
+                                              );
+                                              Navigator.of(
+                                                context,
+                                              ).pushReplacement(
+                                                PageRouteBuilder(
+                                                  pageBuilder:
+                                                      (
+                                                        context,
+                                                        animation,
+                                                        secondaryAnimation,
+                                                      ) => MainScreen(),
+                                                  transitionsBuilder:
+                                                      (
+                                                        context,
+                                                        animation,
+                                                        secondaryAnimation,
+                                                        child,
+                                                      ) {
+                                                        const begin = Offset(
+                                                          0.0,
+                                                          1.0,
+                                                        );
+                                                        const end = Offset.zero;
+                                                        const curve =
+                                                            Curves.ease;
+                                                        var tween =
+                                                            Tween(
+                                                              begin: begin,
+                                                              end: end,
+                                                            ).chain(
+                                                              CurveTween(
+                                                                curve: curve,
+                                                              ),
+                                                            );
+                                                        return SlideTransition(
+                                                          position: animation
+                                                              .drive(tween),
+                                                          child: child,
+                                                        );
+                                                      },
+                                                  transitionDuration: Duration(
+                                                    milliseconds: 500,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(content: Text("$e")),
+                                            );
+                                            print("ERROR | $e");
+                                            setState(() {
+                                              _isLoading = false;
+                                            });
+                                          } finally {
+                                            _isLoading = false;
+                                          }
+                                        },
                                   child: Text(
                                     "Sign Up",
                                     style: GoogleFonts.ibmPlexSans(
@@ -303,13 +355,52 @@ class _SignUpPageState extends State<SignUpPage> {
                                 ),
                                 height: 10,
                                 minWidth: 200,
-                                onPressed: _isLoading ? null : () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => WelcomePage(),
-                                    ),
-                                  );
-                                },
+                                onPressed: _isLoading
+                                    ? null
+                                    : () {
+                                        Navigator.of(context).pushReplacement(
+                                          PageRouteBuilder(
+                                            pageBuilder:
+                                                (
+                                                  context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                ) => WelcomePage(),
+                                            transitionsBuilder:
+                                                (
+                                                  context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                  child,
+                                                ) {
+                                                  const begin = Offset(
+                                                    0.0,
+                                                    1.0,
+                                                  );
+                                                  const end = Offset.zero;
+                                                  const curve = Curves.ease;
+                                                  var tween =
+                                                      Tween(
+                                                        begin: begin,
+                                                        end: end,
+                                                      ).chain(
+                                                        CurveTween(
+                                                          curve: curve,
+                                                        ),
+                                                      );
+                                                  return SlideTransition(
+                                                    position: animation.drive(
+                                                      tween,
+                                                    ),
+                                                    child: child,
+                                                  );
+                                                },
+                                            transitionDuration: Duration(
+                                              milliseconds: 500,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                 child: AutoSizeText(
                                   "Login",
                                   style: GoogleFonts.ibmPlexSans(
@@ -321,13 +412,6 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 10),
-                          if (_isLoading)
-                            LinearProgressIndicator(
-                              backgroundColor: Color.fromRGBO(35, 35, 35, 1),
-                              color: Color.fromRGBO(120, 225, 128, 1),
-                            )
-                          
                         ],
                       ),
                     ),
@@ -335,6 +419,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
             ),
+            SizedBox(height: 10),
+            if (_isLoading)
+              LinearProgressIndicator(
+                backgroundColor: Color.fromRGBO(35, 35, 35, 1),
+                color: Color.fromRGBO(120, 225, 128, 1),
+              ),
           ],
         ),
       ),
