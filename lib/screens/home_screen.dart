@@ -1,5 +1,4 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:evolve_fitness_app/screen_manager.dart';
 import 'package:evolve_fitness_app/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,6 +17,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<dynamic> habits = [];
   int streak = 0;
+  bool _habitsLoaded = false; // Track if we've already loaded habits
   final supabase = Supabase.instance.client;
   final usrid = Supabase.instance.client.auth.currentUser?.id;
   final habitNameCtrl = TextEditingController();
@@ -25,7 +25,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void initState() {
     super.initState();
-    fetchHabitsAndStreak();
+    // Only load habits once
+    if (!_habitsLoaded) {
+      fetchHabitsAndStreak();
+      _habitsLoaded = true;
+    }
   }
 
   Future<void> fetchHabitsAndStreak() async {
@@ -50,44 +54,60 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         streak = userData['streak'] ?? 0;
       });
 
-      // Initialize Riverpod state for today's checked habits based on DB
-      final checkedFromDb = habits
-          .where((h) => (h['last_completed'] ?? '') == today)
-          .map<String>((h) => h['habit'].toString());
-      // ignore: use_build_context_synchronously
-      ref.read(dailyCheckedProvider.notifier).setCheckedFromServer(checkedFromDb);
+      // Sync DB state into the provider, but only if provider is empty
+      // Otherwise, trust the persisted local state in SharedPreferences
+      final currentProviderState = ref.read(dailyCheckedProvider);
+      if (currentProviderState.isEmpty) {
+        final checkedFromDb = habits
+            .where((h) => (h['last_completed'] ?? '') == today)
+            .map<String>((h) => h['habit'].toString());
+        // ignore: use_build_context_synchronously
+        ref
+            .read(dailyCheckedProvider.notifier)
+            .setCheckedFromServer(checkedFromDb);
+      }
     }
   }
 
   Future<void> handleCheck(int index, bool? value) async {
-    final today = DateTime.now().toString();
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final habit = habits[index];
     final habitName = habit['habit'].toString();
 
     final checkedSet = ref.read(dailyCheckedProvider);
     if (checkedSet.contains(habitName)) return; // Already checked today
 
-    // Update habit's last_completed
+    // Update provider state immediately so UI reflects the change
+    await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+
+    // Update habit's last_completed in Supabase (in background)
     try {
       await supabase
           .from('habit_data')
           .update({'last_completed': today})
           .eq('user_id', usrid as String)
           .eq('habit', habitName);
-      print(today);
+      print('Updated last_completed for $habitName to $today');
     } catch (e) {
       print("// ERROR IN UPDATING LAST COMPLETE: $e");
+      // Revert the provider state if DB update fails
+      await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+      return;
     }
 
     // Increment streak
     streak += 1;
-    await supabase
-        .from('user_data')
-        .update({'streak': streak})
-        .eq('uuid', usrid as String);
-
-    // Update provider state
-    await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+    try {
+      await supabase
+          .from('user_data')
+          .update({'streak': streak})
+          .eq('uuid', usrid as String);
+    } catch (e) {
+      print("// ERROR IN UPDATING STREAK: $e");
+      // Revert the provider state if streak update fails
+      await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+      return;
+    }
 
     ScaffoldMessenger.of(
       context,
@@ -395,7 +415,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         itemBuilder: (context, index) {
           final habit = habits[index];
           return CheckboxListTile(
-            value: ref.watch(dailyCheckedProvider).contains(habit['habit'].toString()),
+            value: ref
+                .watch(dailyCheckedProvider)
+                .contains(habit['habit'].toString()),
             title: Text(habit['habit']),
             subtitle: Text(habit['habit_desc']),
             onChanged: (bool? value) {

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -30,12 +29,16 @@ class DailyCheckedNotifier extends StateNotifier<Set<String>> {
     final key = _keyForDate(DateTime.now());
     final items = prefs.getStringList(key) ?? <String>[];
     state = Set<String>.from(items);
+    print('DEBUG: Loaded checked items from SharedPreferences: $state');
   }
 
   Future<void> _saveForToday() async {
     final prefs = await SharedPreferences.getInstance();
     final key = _keyForDate(DateTime.now());
     await prefs.setStringList(key, state.toList());
+    print(
+      'DEBUG: Saved checked items to SharedPreferences for key $key: $state',
+    );
   }
 
   Future<void> toggle(String habitId) async {
@@ -79,6 +82,7 @@ class DailyCheckedNotifier extends StateNotifier<Set<String>> {
   }
 }
 
-final dailyCheckedProvider = StateNotifierProvider<DailyCheckedNotifier, Set<String>>(
-  (ref) => DailyCheckedNotifier(),
-);
+final dailyCheckedProvider =
+    StateNotifierProvider<DailyCheckedNotifier, Set<String>>(
+      (ref) => DailyCheckedNotifier(),
+    );
