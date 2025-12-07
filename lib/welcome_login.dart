@@ -418,8 +418,7 @@ class _WelcomePageState extends State<WelcomePage> {
                               final AuthResponse response =
                                   (await supabase.auth.signInWithOAuth(
                                         OAuthProvider.google,
-                                        redirectTo:
-                                            'http://localhost:3000',
+                                    redirectTo: "https://evolve-habit-tracker-b38hoe4k3-datdevsteves-projects.vercel.app/"
                                       ))
                                       as AuthResponse;
                               if (response.session != null) {
