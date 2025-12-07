@@ -421,10 +421,11 @@ class _WelcomePageState extends State<WelcomePage> {
                                     redirectTo: "https://evolve-habit-tracker-b38hoe4k3-datdevsteves-projects.vercel.app/"
                                       ))
                                       as AuthResponse;
-                              if (response.session != null) {
+                              supabase.auth
+                              .onAuthStateChange.listen((data){
                                 final usr = response
                                     .user
-                                    ?.userMetadata?['display_name'];
+                                    ?.userMetadata?['name'];
                                 print("//INFO | USER LOGGED IN");
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -464,7 +465,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                     ),
                                   ),
                                 );
-                              }
+                              });
                             },
                             child: Center(
                               child: Image.asset(
