@@ -1,12 +1,6 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:evolve_fitness_app/screens/home_screen.dart';
-import 'package:evolve_fitness_app/screens/profile_screen.dart';
-import 'package:evolve_fitness_app/screens/settings_screen.dart';
 import 'package:evolve_fitness_app/screens/stats_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,9 +11,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 1;
-  static const List<Widget> _widgetOptions = <Widget>[
-    StatsScreen(),
-    HomeScreen(),
+  // Use builders so the screens are instantiated at build time (after
+  // Flutter bindings are initialized) rather than at import time. This
+  // avoids plugins or platform APIs being invoked before
+  // WidgetsFlutterBinding.ensureInitialized().
+  static final List<Widget Function()> _widgetOptions = <Widget Function()>[
+    () => StatsScreen(),
+    () => HomeScreen(),
   ];
   final habitNameCtrl = TextEditingController();
   final habitDescCtrl = TextEditingController();
@@ -32,13 +30,12 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    
-    final supabase = Supabase.instance.client;
-
     return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: _widgetOptions[_selectedIndex](),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
+        elevation: 20,
+        shadowColor: Colors.black,
         padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
         shape: CircularNotchedRectangle(),
         color: Color.fromRGBO(22, 25, 15, 1),

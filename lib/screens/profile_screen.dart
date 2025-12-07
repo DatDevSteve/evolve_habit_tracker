@@ -1,3 +1,5 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:evolve_fitness_app/screens/home_screen.dart';
 import 'package:evolve_fitness_app/welcome_login.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,7 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        toolbarHeight: media.height * 0.45,
+        toolbarHeight: media.height * 0.1,
         backgroundColor: Color.fromRGBO(22, 25, 15, 1),
         elevation: 15,
         shadowColor: Colors.black,
@@ -28,38 +30,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
             bottomRight: Radius.circular(10),
           ),
         ),
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Text(
-                "EVOLVE",
-                style: GoogleFonts.federo(
-                  letterSpacing: 30,
-                  color: Color.fromRGBO(120, 225, 128, 1),
-                  fontSize: 40,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Icon(
-                Icons.account_circle_sharp,
-                color: Colors.white,
-                size: 200,
-              ),
-            ),
-            Text(
-              supabase.auth.currentUser?.userMetadata?["display_name"] ??
-                  "Guest",
-              style: GoogleFonts.federo(color: Colors.white, fontSize: 30),
-            ),
-          ],
+        title: AutoSizeText(
+          " E V O L V E",
+          maxFontSize: 45,
+          minFontSize: 30,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.federo(
+            //letterSpacing: 10,
+            color: Color.fromRGBO(120, 225, 128, 1),
+            fontSize: (media.width < 1000 ? media.width * 0.12 : 100),
+          ),
+        ),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          },
+          icon: Icon(
+            Icons.keyboard_arrow_left_rounded,
+            size: 50,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Column(
         children: [
+          Container(child: Card(color: Color.fromRGBO(35, 35, 35, 1))),
           Padding(
             padding: const EdgeInsets.all(5.0),
             child: SizedBox(

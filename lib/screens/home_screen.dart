@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:evolve_fitness_app/screens/profile_screen.dart';
 import 'package:evolve_fitness_app/welcome_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -77,8 +79,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final checkedSet = ref.read(dailyCheckedProvider);
     if (checkedSet.contains(habitName)) return; // Already checked today
 
-    // Update provider state immediately so UI reflects the change
-    await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+    // Defer provider update to the next frame to avoid mutating
+    // UI state during pointer/device update (prevents mouse_tracker asserts).
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      // Fire-and-forget; the provider will persist state internally.
+      ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+    });
 
     // Update habit's last_completed in Supabase (in background)
     try {
@@ -91,7 +97,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (e) {
       print("// ERROR IN UPDATING LAST COMPLETE: $e");
       // Revert the provider state if DB update fails
-      await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+      });
       return;
     }
 
@@ -105,7 +113,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (e) {
       print("// ERROR IN UPDATING STREAK: $e");
       // Revert the provider state if streak update fails
-      await ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        ref.read(dailyCheckedProvider.notifier).toggle(habitName);
+      });
       return;
     }
 
@@ -398,9 +408,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         leading: IconButton(
           onPressed: () {
-            supabase.auth.signOut();
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => IntroScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
             );
           },
           icon: Icon(
@@ -414,15 +423,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         itemCount: habits.length,
         itemBuilder: (context, index) {
           final habit = habits[index];
-          return CheckboxListTile(
-            value: ref
-                .watch(dailyCheckedProvider)
-                .contains(habit['habit'].toString()),
-            title: Text(habit['habit']),
-            subtitle: Text(habit['habit_desc']),
-            onChanged: (bool? value) {
-              if (value == true) handleCheck(index, value);
-            },
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 5),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Color.fromRGBO(226, 223, 223, 1),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black45,
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: CheckboxListTile(
+                activeColor: Color.fromRGBO(120, 225, 128, 1),
+                checkColor: Colors.black,
+                tileColor: Color.fromRGBO(226, 223, 223, 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadiusGeometry.all(Radius.circular(20)),
+                ),
+                value: ref
+                    .watch(dailyCheckedProvider)
+                    .contains(habit['habit'].toString()),
+                title: Text(
+                  habit['habit'],
+                  style: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(habit['habit_desc']),
+                onChanged: (bool? value) {
+                  if (value == true) handleCheck(index, value);
+                },
+              ),
+            ),
           );
         },
       ),

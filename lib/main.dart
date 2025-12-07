@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://hhaqojnliqzluhwszgjc.supabase.co',
     anonKey: 'sb_publishable_kjH445LzWXNmxmFJTdy5uQ_Bs83NeHO',
@@ -27,8 +28,10 @@ class _MyAppState extends State<MyApp> {
     final Widget homeScreen = session != null ? MainScreen() : IntroScreen();
 
     return MaterialApp(
+      title: "Evolve Habit Tracker",
       theme: ThemeData(
-        colorSchemeSeed: Color.fromRGBO(120, 225, 128, 1),
+        primaryColor: Color.fromRGBO(120, 225, 128, 1) ,
+        //colorSchemeSeed: Color.fromRGBO(120, 225, 128, 1),
         highlightColor: Color.fromRGBO(120, 225, 128, 1),
         textTheme: GoogleFonts.ibmPlexSansTextTheme(
           Theme.of(context).textTheme,

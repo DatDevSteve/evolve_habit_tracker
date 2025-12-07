@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 /// Holds the set of habit identifiers (we use habit name here) that have
 /// been checked for the current day. Data is persisted to
@@ -28,17 +29,30 @@ class DailyCheckedNotifier extends StateNotifier<Set<String>> {
     final prefs = await SharedPreferences.getInstance();
     final key = _keyForDate(DateTime.now());
     final items = prefs.getStringList(key) ?? <String>[];
-    state = Set<String>.from(items);
-    print('DEBUG: Loaded checked items from SharedPreferences: $state');
+    try {
+      state = Set<String>.from(items);
+      // Defensive: avoid throwing during engine disposal (web/hot-restart)
+      print('// DEBUG: Loaded checked items from SharedPreferences: $state');
+    } catch (e, st) {
+      // Swallow errors that occur if the engine/view is gone; log for debugging.
+      // These can happen in certain hot-restart/dispose scenarios on web.
+      debugPrint(
+        'Ignored error setting provider state in _loadForToday: $e\n$st',
+      );
+    }
   }
 
   Future<void> _saveForToday() async {
     final prefs = await SharedPreferences.getInstance();
     final key = _keyForDate(DateTime.now());
-    await prefs.setStringList(key, state.toList());
-    print(
-      'DEBUG: Saved checked items to SharedPreferences for key $key: $state',
-    );
+    try {
+      await prefs.setStringList(key, state.toList());
+      print(
+        '// DEBUG: Saved checked items to SharedPreferences for key $key: $state',
+      );
+    } catch (e, st) {
+      debugPrint('Error saving checked items: $e\n$st');
+    }
   }
 
   Future<void> toggle(String habitId) async {
@@ -48,19 +62,31 @@ class DailyCheckedNotifier extends StateNotifier<Set<String>> {
     } else {
       newSet.add(habitId);
     }
-    state = newSet;
-    await _saveForToday();
+    try {
+      state = newSet;
+      await _saveForToday();
+    } catch (e, st) {
+      debugPrint('Ignored error toggling habit $habitId: $e\n$st');
+    }
   }
 
   Future<void> setCheckedFromServer(Iterable<String> habitIds) async {
-    state = Set<String>.from(habitIds);
-    await _saveForToday();
+    try {
+      state = Set<String>.from(habitIds);
+      await _saveForToday();
+    } catch (e, st) {
+      debugPrint('Ignored error in setCheckedFromServer: $e\n$st');
+    }
   }
 
   /// Clear today's state (used when day rolls over)
   Future<void> _clearForNewDay() async {
-    state = <String>{};
-    await _saveForToday();
+    try {
+      state = <String>{};
+      await _saveForToday();
+    } catch (e, st) {
+      debugPrint('Ignored error clearing state for new day: $e\n$st');
+    }
   }
 
   void _scheduleMidnightReset() {
@@ -69,9 +95,14 @@ class DailyCheckedNotifier extends StateNotifier<Set<String>> {
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
     final duration = tomorrow.difference(now);
     _midnightTimer = Timer(duration + const Duration(seconds: 1), () async {
-      // At or just after midnight: clear and reschedule
-      await _clearForNewDay();
-      _scheduleMidnightReset();
+      try {
+        // At or just after midnight: clear and reschedule
+        await _clearForNewDay();
+        _scheduleMidnightReset();
+      } catch (e, st) {
+        // Swallow errors that may occur if the engine/view was disposed.
+        debugPrint('Ignored error in midnight timer callback: $e\n$st');
+      }
     });
   }
 

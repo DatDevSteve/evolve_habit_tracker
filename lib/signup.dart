@@ -59,7 +59,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         ? media.width * 0.85
                         : 620),
                     height: (media.height < 690 && media.width < 1000
-                        ? media.height * 0.65
+                        ? media.height * 0.7
                         : 450),
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -403,10 +403,10 @@ class _SignUpPageState extends State<SignUpPage> {
                                       },
                                 child: AutoSizeText(
                                   "Login",
+                                  minFontSize: 16,
                                   style: GoogleFonts.ibmPlexSans(
                                     color: Colors.black,
                                     fontWeight: FontWeight.w600,
-                                    fontSize: 18,
                                   ),
                                 ),
                               ),

@@ -28,7 +28,7 @@ class _WelcomePageState extends State<WelcomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: media.height * 0.17),
+            SizedBox(height: media.height * 0.12),
             Center(
               child: Text(
                 "EVOLVE",
@@ -41,7 +41,7 @@ class _WelcomePageState extends State<WelcomePage> {
             ),
             SizedBox(height: media.height * 0.28),
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 1, 2, 0),
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
               child: Card(
                 elevation: 20,
                 shadowColor: Colors.black,
@@ -52,14 +52,14 @@ class _WelcomePageState extends State<WelcomePage> {
                 ),
                 child: SingleChildScrollView(
                   child: Container(
-                    width: (media.width < 1000 && media.height < 690
+                    width: (media.width < 393 && media.height < 852
                         ? media.width * 0.85
                         : 620),
-                    height: (media.height < 690 && media.width < 1000
-                        ? media.height * 0.50
-                        : 350),
+                    height: (media.height < 450 && media.width < 950
+                        ? media.height * 0.5
+                        : 390),
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +78,7 @@ class _WelcomePageState extends State<WelcomePage> {
                           ),
 
                           Padding(
-                            padding: const EdgeInsets.all(5.0),
+                            padding: const EdgeInsets.fromLTRB(2, 5, 2, 5),
                             child: AutoSizeText(
                               "Email Address",
                               style: GoogleFonts.ibmPlexSans(
@@ -113,69 +113,155 @@ class _WelcomePageState extends State<WelcomePage> {
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(5.0),
-                            child: Row(
-                              children: [
-                                AutoSizeText(
-                                  "Password",
+                          Row(
+                            children: [
+                              AutoSizeText(
+                                "Password",
+                                style: GoogleFonts.ibmPlexSans(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (emailController.text.isEmpty == false) {
+                                    showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder: (BuildContext context) => AlertDialog(
+                                        title: Text("Forgot Password"),
+                                        content: Text(
+                                          "Do you want send a password reset link on your entered email address?",
+                                          softWrap: true,
+                                        ),
+                                        actions: [
+                                          MaterialButton(
+                                            onPressed: () {
+                                              Navigator.pop(context, 'YES');
+                                              try {
+                                                supabase.auth
+                                                    .resetPasswordForEmail(
+                                                      emailController.text,
+                                                    );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      "A password reset link has been sent over your email!",
+                                                    ),
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text("Error: $e"),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: Text(
+                                              "Yes",
+                                              style: GoogleFonts.ibmPlexSans(
+                                                color: Color.fromRGBO(
+                                                  120,
+                                                  225,
+                                                  128,
+                                                  1,
+                                                ),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          MaterialButton(
+                                            onPressed: () {
+                                              Navigator.pop(context, 'NO');
+                                            },
+                                            child: Text(
+                                              "No",
+                                              style: GoogleFonts.ibmPlexSans(
+                                                color: Color.fromRGBO(
+                                                  120,
+                                                  225,
+                                                  128,
+                                                  1,
+                                                ),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) =>
+                                          AlertDialog(
+                                            title: Text("Forgot Password"),
+                                            content: Text(
+                                              "Please enter an email address in the email field and try again",
+                                              softWrap: true,
+                                            ),
+                                            actions: [
+                                              MaterialButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  'Okay',
+                                                ),
+                                                child: Text(
+                                                  "Okay",
+                                                  style:
+                                                      GoogleFonts.ibmPlexSans(
+                                                        color: Color.fromRGBO(
+                                                          120,
+                                                          225,
+                                                          128,
+                                                          1,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  }
+                                },
+                                child: AutoSizeText(
+                                  "Forgot Password?",
                                   style: GoogleFonts.ibmPlexSans(
+                                    color: Color.fromRGBO(89, 168, 96, 1),
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    if (emailController.text != "") {
-                                      AlertDialog(
-                                        title: Text("Forgot Password"),
-                                        content: Text(
-                                          "A password reset link has been sent over your given email",
-                                        ),
-                                      );
-                                      supabase.auth.resetPasswordForEmail(
-                                        emailController.text,
-                                      );
-                                    }
-                                    else{
-                                      AlertDialog(
-                                        title: Text("Forgot Password"),
-                                        content: Text(
-                                          "Please enter an email address in the email field and try again",
-                                        ),
-                                      );
-                                    }
-                                    
-                                  },
-                                  child: AutoSizeText("Forgot Password?"),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
 
                           /// PASSWORD TEXTBOX:
-                          Padding(
-                            padding: const EdgeInsets.all(3.0),
-                            child: Material(
-                              elevation: 20,
-                              shadowColor: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              child: TextField(
-                                controller: passwdController,
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                  constraints: BoxConstraints(maxHeight: 50),
-                                  fillColor: Color.fromRGBO(243, 242, 242, 1),
-                                  filled: true,
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color.fromRGBO(120, 225, 128, 1),
-                                    ),
-                                    borderRadius: BorderRadius.circular(15),
+                          Material(
+                            elevation: 20,
+                            shadowColor: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            child: TextField(
+                              controller: passwdController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                constraints: BoxConstraints(maxHeight: 50),
+                                fillColor: Color.fromRGBO(243, 242, 242, 1),
+                                filled: true,
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Color.fromRGBO(120, 225, 128, 1),
                                   ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
                               ),
                             ),
@@ -316,6 +402,83 @@ class _WelcomePageState extends State<WelcomePage> {
                               ),
                             ),
                           ),
+
+                          // Login with Google
+                          MaterialButton(
+                            padding: EdgeInsets.fromLTRB(50, 1, 50, 1),
+                            color: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            focusColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            elevation: 0,
+                            focusElevation: 0,
+                            disabledElevation: 0,
+                            highlightElevation: 0,
+                            onPressed: () async {
+                              final AuthResponse response =
+                                  (await supabase.auth.signInWithOAuth(
+                                        OAuthProvider.google,
+                                        redirectTo:
+                                            'http://localhost:3000',
+                                      ))
+                                      as AuthResponse;
+                              if (response.session != null) {
+                                final usr = response
+                                    .user
+                                    ?.userMetadata?['display_name'];
+                                print("//INFO | USER LOGGED IN");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Welcome back! $usr"),
+                                    duration: Duration(seconds: 5),
+                                  ),
+                                );
+                                Navigator.of(context).pushReplacement(
+                                  PageRouteBuilder(
+                                    pageBuilder:
+                                        (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                        ) => MainScreen(),
+                                    transitionsBuilder:
+                                        (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                          child,
+                                        ) {
+                                          const begin = Offset(0.0, 1.0);
+                                          const end = Offset.zero;
+                                          const curve = Curves.ease;
+                                          var tween = Tween(
+                                            begin: begin,
+                                            end: end,
+                                          ).chain(CurveTween(curve: curve));
+                                          return SlideTransition(
+                                            position: animation.drive(tween),
+                                            child: child,
+                                          );
+                                        },
+                                    transitionDuration: Duration(
+                                      milliseconds: 500,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Center(
+                              child: Image.asset(
+                                'assets/continueBtn.png',
+                                scale: 0.5,
+                                height: 40,
+                                width: 200,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+
+                          // Sign Up Button
                           Expanded(
                             flex: 1,
                             child: Center(
@@ -387,7 +550,7 @@ class _WelcomePageState extends State<WelcomePage> {
                               ),
                             ),
                           ),
-                          SizedBox(height: 5),
+                          //SizedBox(height: 01),
                         ],
                       ),
                     ),
