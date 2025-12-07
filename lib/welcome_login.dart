@@ -418,8 +418,6 @@ class _WelcomePageState extends State<WelcomePage> {
                               final AuthResponse response =
                                   (await supabase.auth.signInWithOAuth(
                                         OAuthProvider.google,
-                                        redirectTo:
-                                            'http://localhost:3000',
                                       ))
                                       as AuthResponse;
                               if (response.session != null) {
