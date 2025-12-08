@@ -408,7 +408,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pushReplacement(
+            Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => ProfileScreen()),
             );
           },
