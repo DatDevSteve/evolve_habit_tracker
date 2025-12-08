@@ -17,6 +17,17 @@ class _WelcomePageState extends State<WelcomePage> {
   final passwdController = TextEditingController();
   bool _isLoading = false;
 
+  // Helper method to extract user-friendly error message
+  String _getErrorMessage(dynamic error) {
+    if (error is AuthException) {
+      return error.message;
+    } else if (error is PostgrestException) {
+      return error.message;
+    } else {
+      return error.toString().replaceAll('Exception: ', '').replaceAll('Error: ', '');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
@@ -136,13 +147,13 @@ class _WelcomePageState extends State<WelcomePage> {
                                         ),
                                         actions: [
                                           MaterialButton(
-                                            onPressed: () {
+                                            onPressed: () async {
                                               Navigator.pop(context, 'YES');
                                               try {
-                                                supabase.auth
+                                                await supabase.auth
                                                     .resetPasswordForEmail(
-                                                      emailController.text,
-                                                    );
+                                                  emailController.text,
+                                                );
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
@@ -157,7 +168,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                                   context,
                                                 ).showSnackBar(
                                                   SnackBar(
-                                                    content: Text("Error: $e"),
+                                                    content: Text(_getErrorMessage(e)),
                                                   ),
                                                 );
                                               }
@@ -214,16 +225,16 @@ class _WelcomePageState extends State<WelcomePage> {
                                                 child: Text(
                                                   "Okay",
                                                   style:
-                                                      GoogleFonts.ibmPlexSans(
-                                                        color: Color.fromRGBO(
-                                                          120,
-                                                          225,
-                                                          128,
-                                                          1,
-                                                        ),
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
+                                                  GoogleFonts.ibmPlexSans(
+                                                    color: Color.fromRGBO(
+                                                      120,
+                                                      225,
+                                                      128,
+                                                      1,
+                                                    ),
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -285,111 +296,115 @@ class _WelcomePageState extends State<WelcomePage> {
                                   minWidth: 390,
                                   onPressed: _isLoading
                                       ? () {
-                                          print("// AVOIDING REDUNDANCY");
-                                        }
+                                    print("// AVOIDING REDUNDANCY");
+                                  }
                                       : () async {
-                                          setState(() => _isLoading = true);
-                                          final emailID = emailController.text;
-                                          final passwd = passwdController.text;
+                                    setState(() => _isLoading = true);
+                                    final emailID = emailController.text;
+                                    final passwd = passwdController.text;
 
-                                          if (emailID.isEmpty ||
-                                              passwd.isEmpty) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  "All fields are required!",
-                                                ),
-                                              ),
-                                            );
-                                            return;
-                                          }
+                                    if (emailID.isEmpty ||
+                                        passwd.isEmpty) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "All fields are required!",
+                                          ),
+                                        ),
+                                      );
+                                      setState(() => _isLoading = false);
+                                      return;
+                                    }
 
-                                          try {
-                                            final AuthResponse response =
-                                                await supabase.auth
-                                                    .signInWithPassword(
-                                                      email: emailID,
-                                                      password: passwd,
-                                                    );
+                                    try {
+                                      final AuthResponse response =
+                                      await supabase.auth
+                                          .signInWithPassword(
+                                        email: emailID,
+                                        password: passwd,
+                                      );
 
-                                            if (response.session != null) {
-                                              final usr = response
-                                                  .user
-                                                  ?.userMetadata?['display_name'];
-                                              print("//INFO | USER LOGGED IN");
-                                              ScaffoldMessenger.of(
+                                      if (response.session != null) {
+                                        final usr = response
+                                            .user
+                                            ?.userMetadata?['display_name'];
+                                        print("//INFO | USER LOGGED IN");
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "Welcome back! $usr",
+                                            ),
+                                            duration: Duration(
+                                              seconds: 5,
+                                            ),
+                                          ),
+                                        );
+                                        Navigator.of(
+                                          context,
+                                        ).pushReplacement(
+                                          PageRouteBuilder(
+                                            pageBuilder:
+                                                (
                                                 context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    "Welcome back! $usr",
-                                                  ),
-                                                  duration: Duration(
-                                                    seconds: 5,
-                                                  ),
+                                                animation,
+                                                secondaryAnimation,
+                                                ) => MainScreen(),
+                                            transitionsBuilder:
+                                                (
+                                                context,
+                                                animation,
+                                                secondaryAnimation,
+                                                child,
+                                                ) {
+                                              const begin = Offset(
+                                                0.0,
+                                                1.0,
+                                              );
+                                              const end = Offset.zero;
+                                              const curve =
+                                                  Curves.ease;
+                                              var tween =
+                                              Tween(
+                                                begin: begin,
+                                                end: end,
+                                              ).chain(
+                                                CurveTween(
+                                                  curve: curve,
                                                 ),
                                               );
-                                              Navigator.of(
-                                                context,
-                                              ).pushReplacement(
-                                                PageRouteBuilder(
-                                                  pageBuilder:
-                                                      (
-                                                        context,
-                                                        animation,
-                                                        secondaryAnimation,
-                                                      ) => MainScreen(),
-                                                  transitionsBuilder:
-                                                      (
-                                                        context,
-                                                        animation,
-                                                        secondaryAnimation,
-                                                        child,
-                                                      ) {
-                                                        const begin = Offset(
-                                                          0.0,
-                                                          1.0,
-                                                        );
-                                                        const end = Offset.zero;
-                                                        const curve =
-                                                            Curves.ease;
-                                                        var tween =
-                                                            Tween(
-                                                              begin: begin,
-                                                              end: end,
-                                                            ).chain(
-                                                              CurveTween(
-                                                                curve: curve,
-                                                              ),
-                                                            );
-                                                        return SlideTransition(
-                                                          position: animation
-                                                              .drive(tween),
-                                                          child: child,
-                                                        );
-                                                      },
-                                                  transitionDuration: Duration(
-                                                    milliseconds: 500,
-                                                  ),
-                                                ),
+                                              return SlideTransition(
+                                                position: animation
+                                                    .drive(tween),
+                                                child: child,
                                               );
-                                            }
-                                          } catch (e) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(content: Text("$e")),
-                                            );
-                                            print("//ERROR | $e ");
-                                            setState(() {
-                                              _isLoading = false;
-                                            });
-                                          } finally {
-                                            setState(() => _isLoading = false);
-                                          }
-                                        },
+                                            },
+                                            transitionDuration: Duration(
+                                              milliseconds: 500,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(_getErrorMessage(e)),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      print("//ERROR | $e ");
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    } finally {
+                                      setState(() => _isLoading = false);
+                                    }
+                                  },
                                   child: Text(
                                     "Login",
                                     style: GoogleFonts.ibmPlexSans(
@@ -415,57 +430,66 @@ class _WelcomePageState extends State<WelcomePage> {
                             disabledElevation: 0,
                             highlightElevation: 0,
                             onPressed: () async {
-                              final AuthResponse response =
-                                  (await supabase.auth.signInWithOAuth(
-                                        OAuthProvider.google,
+                              try {
+                                final AuthResponse response =
+                                (await supabase.auth.signInWithOAuth(
+                                    OAuthProvider.google,
                                     redirectTo: "https://evolve-habit-tracker-b38hoe4k3-datdevsteves-projects.vercel.app/"
-                                      ))
-                                      as AuthResponse;
-                              supabase.auth
-                              .onAuthStateChange.listen((data){
-                                final usr = response
-                                    .user
-                                    ?.userMetadata?['name'];
-                                print("//INFO | USER LOGGED IN");
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Welcome back! $usr"),
-                                    duration: Duration(seconds: 5),
-                                  ),
-                                );
-                                Navigator.of(context).pushReplacement(
-                                  PageRouteBuilder(
-                                    pageBuilder:
-                                        (
+                                ))
+                                as AuthResponse;
+                                supabase.auth
+                                    .onAuthStateChange.listen((data){
+                                  final usr = response
+                                      .user
+                                      ?.userMetadata?['name'];
+                                  print("//INFO | USER LOGGED IN");
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Welcome back! $usr"),
+                                      duration: Duration(seconds: 5),
+                                    ),
+                                  );
+                                  Navigator.of(context).pushReplacement(
+                                    PageRouteBuilder(
+                                      pageBuilder:
+                                          (
                                           context,
                                           animation,
                                           secondaryAnimation,
-                                        ) => MainScreen(),
-                                    transitionsBuilder:
-                                        (
+                                          ) => MainScreen(),
+                                      transitionsBuilder:
+                                          (
                                           context,
                                           animation,
                                           secondaryAnimation,
                                           child,
-                                        ) {
-                                          const begin = Offset(0.0, 1.0);
-                                          const end = Offset.zero;
-                                          const curve = Curves.ease;
-                                          var tween = Tween(
-                                            begin: begin,
-                                            end: end,
-                                          ).chain(CurveTween(curve: curve));
-                                          return SlideTransition(
-                                            position: animation.drive(tween),
-                                            child: child,
-                                          );
-                                        },
-                                    transitionDuration: Duration(
-                                      milliseconds: 500,
+                                          ) {
+                                        const begin = Offset(0.0, 1.0);
+                                        const end = Offset.zero;
+                                        const curve = Curves.ease;
+                                        var tween = Tween(
+                                          begin: begin,
+                                          end: end,
+                                        ).chain(CurveTween(curve: curve));
+                                        return SlideTransition(
+                                          position: animation.drive(tween),
+                                          child: child,
+                                        );
+                                      },
+                                      transitionDuration: Duration(
+                                        milliseconds: 500,
+                                      ),
                                     ),
+                                  );
+                                });
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(_getErrorMessage(e)),
+                                    backgroundColor: Colors.red,
                                   ),
                                 );
-                              });
+                              }
                             },
                             child: Center(
                               child: Image.asset(
@@ -493,52 +517,52 @@ class _WelcomePageState extends State<WelcomePage> {
                                 minWidth: 200,
                                 onPressed: _isLoading
                                     ? () {
-                                        print("// AVOIDING REDUNDANCY");
-                                      }
+                                  print("// AVOIDING REDUNDANCY");
+                                }
                                     : () {
-                                        Navigator.of(context).pushReplacement(
-                                          PageRouteBuilder(
-                                            pageBuilder:
-                                                (
-                                                  context,
-                                                  animation,
-                                                  secondaryAnimation,
-                                                ) => SignUpPage(),
-                                            transitionsBuilder:
-                                                (
-                                                  context,
-                                                  animation,
-                                                  secondaryAnimation,
-                                                  child,
-                                                ) {
-                                                  const begin = Offset(
-                                                    0.0,
-                                                    1.0,
-                                                  );
-                                                  const end = Offset.zero;
-                                                  const curve = Curves.ease;
-                                                  var tween =
-                                                      Tween(
-                                                        begin: begin,
-                                                        end: end,
-                                                      ).chain(
-                                                        CurveTween(
-                                                          curve: curve,
-                                                        ),
-                                                      );
-                                                  return SlideTransition(
-                                                    position: animation.drive(
-                                                      tween,
-                                                    ),
-                                                    child: child,
-                                                  );
-                                                },
-                                            transitionDuration: Duration(
-                                              milliseconds: 500,
-                                            ),
+                                  Navigator.of(context).pushReplacement(
+                                    PageRouteBuilder(
+                                      pageBuilder:
+                                          (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                          ) => SignUpPage(),
+                                      transitionsBuilder:
+                                          (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                          child,
+                                          ) {
+                                        const begin = Offset(
+                                          0.0,
+                                          1.0,
+                                        );
+                                        const end = Offset.zero;
+                                        const curve = Curves.ease;
+                                        var tween =
+                                        Tween(
+                                          begin: begin,
+                                          end: end,
+                                        ).chain(
+                                          CurveTween(
+                                            curve: curve,
                                           ),
                                         );
+                                        return SlideTransition(
+                                          position: animation.drive(
+                                            tween,
+                                          ),
+                                          child: child,
+                                        );
                                       },
+                                      transitionDuration: Duration(
+                                        milliseconds: 500,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 child: AutoSizeText(
                                   "Sign Up",
                                   style: GoogleFonts.ibmPlexSans(

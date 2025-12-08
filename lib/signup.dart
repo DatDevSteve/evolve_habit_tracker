@@ -18,6 +18,17 @@ class _SignUpPageState extends State<SignUpPage> {
   final usrController = TextEditingController();
   bool _isLoading = false;
 
+  // Helper method to extract user-friendly error message
+  String _getErrorMessage(dynamic error) {
+    if (error is AuthException) {
+      return error.message;
+    } else if (error is PostgrestException) {
+      return error.message;
+    } else {
+      return error.toString().replaceAll('Exception: ', '').replaceAll('Error: ', '');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
@@ -212,125 +223,129 @@ class _SignUpPageState extends State<SignUpPage> {
                                   minWidth: 390,
                                   onPressed: _isLoading
                                       ? () {
-                                          print("// AVOIDING REDUNDANCY");
-                                        }
+                                    print("// AVOIDING REDUNDANCY");
+                                  }
                                       : () async {
-                                          setState(() => _isLoading = true);
-                                          final emailID = emailController.text;
-                                          final passw = passwdController.text;
-                                          final usrName = usrController.text;
+                                    setState(() => _isLoading = true);
+                                    final emailID = emailController.text;
+                                    final passw = passwdController.text;
+                                    final usrName = usrController.text;
 
-                                          if (emailID.isEmpty ||
-                                              passw.isEmpty ||
-                                              usrName.isEmpty) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  "All fields are required!",
-                                                ),
-                                              ),
-                                            );
-                                            return;
-                                          }
+                                    if (emailID.isEmpty ||
+                                        passw.isEmpty ||
+                                        usrName.isEmpty) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            "All fields are required!",
+                                          ),
+                                        ),
+                                      );
+                                      setState(() => _isLoading = false);
+                                      return;
+                                    }
 
-                                          try {
-                                            final AuthResponse res =
-                                                await supabase.auth.signUp(
-                                                  email: emailID,
-                                                  password: passw,
-                                                  data: {
-                                                    "display_name": usrName,
-                                                  },
-                                                );
-
-                                            if (res.user != null) {
-                                              final usr = res.user;
-                                              final usrid = usr?.id;
-                                              await supabase
-                                                  .from("user_data")
-                                                  .insert({
-                                                    'uuid': usrid,
-                                                    'user_name': '$usrName',
-                                                  });
-                                              print(
-                                                "INFO | USER SIGNED UP $usr",
-                                              );
-                                              print(
-                                                "INFO | ADDED USER TO DATABASE",
-                                              );
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    "Welcome to Evolve, $usrName",
-                                                  ),
-                                                  duration: Duration(
-                                                    seconds: 5,
-                                                  ),
-                                                ),
-                                              );
-                                              Navigator.of(
-                                                context,
-                                              ).pushReplacement(
-                                                PageRouteBuilder(
-                                                  pageBuilder:
-                                                      (
-                                                        context,
-                                                        animation,
-                                                        secondaryAnimation,
-                                                      ) => MainScreen(),
-                                                  transitionsBuilder:
-                                                      (
-                                                        context,
-                                                        animation,
-                                                        secondaryAnimation,
-                                                        child,
-                                                      ) {
-                                                        const begin = Offset(
-                                                          0.0,
-                                                          1.0,
-                                                        );
-                                                        const end = Offset.zero;
-                                                        const curve =
-                                                            Curves.ease;
-                                                        var tween =
-                                                            Tween(
-                                                              begin: begin,
-                                                              end: end,
-                                                            ).chain(
-                                                              CurveTween(
-                                                                curve: curve,
-                                                              ),
-                                                            );
-                                                        return SlideTransition(
-                                                          position: animation
-                                                              .drive(tween),
-                                                          child: child,
-                                                        );
-                                                      },
-                                                  transitionDuration: Duration(
-                                                    milliseconds: 500,
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          } catch (e) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(content: Text("$e")),
-                                            );
-                                            print("ERROR | $e");
-                                            setState(() {
-                                              _isLoading = false;
-                                            });
-                                          } finally {
-                                            _isLoading = false;
-                                          }
+                                    try {
+                                      final AuthResponse res =
+                                      await supabase.auth.signUp(
+                                        email: emailID,
+                                        password: passw,
+                                        data: {
+                                          "display_name": usrName,
                                         },
+                                      );
+
+                                      if (res.user != null) {
+                                        final usr = res.user;
+                                        final usrid = usr?.id;
+                                        await supabase
+                                            .from("user_data")
+                                            .insert({
+                                          'uuid': usrid,
+                                          'user_name': '$usrName',
+                                        });
+                                        print(
+                                          "INFO | USER SIGNED UP $usr",
+                                        );
+                                        print(
+                                          "INFO | ADDED USER TO DATABASE",
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "Welcome to Evolve, $usrName",
+                                            ),
+                                            duration: Duration(
+                                              seconds: 5,
+                                            ),
+                                          ),
+                                        );
+                                        Navigator.of(
+                                          context,
+                                        ).pushReplacement(
+                                          PageRouteBuilder(
+                                            pageBuilder:
+                                                (
+                                                context,
+                                                animation,
+                                                secondaryAnimation,
+                                                ) => MainScreen(),
+                                            transitionsBuilder:
+                                                (
+                                                context,
+                                                animation,
+                                                secondaryAnimation,
+                                                child,
+                                                ) {
+                                              const begin = Offset(
+                                                0.0,
+                                                1.0,
+                                              );
+                                              const end = Offset.zero;
+                                              const curve =
+                                                  Curves.ease;
+                                              var tween =
+                                              Tween(
+                                                begin: begin,
+                                                end: end,
+                                              ).chain(
+                                                CurveTween(
+                                                  curve: curve,
+                                                ),
+                                              );
+                                              return SlideTransition(
+                                                position: animation
+                                                    .drive(tween),
+                                                child: child,
+                                              );
+                                            },
+                                            transitionDuration: Duration(
+                                              milliseconds: 500,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(_getErrorMessage(e)),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      print("ERROR | $e");
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    } finally {
+                                      setState(() => _isLoading = false);
+                                    }
+                                  },
                                   child: Text(
                                     "Sign Up",
                                     style: GoogleFonts.ibmPlexSans(
@@ -358,49 +373,49 @@ class _SignUpPageState extends State<SignUpPage> {
                                 onPressed: _isLoading
                                     ? null
                                     : () {
-                                        Navigator.of(context).pushReplacement(
-                                          PageRouteBuilder(
-                                            pageBuilder:
-                                                (
-                                                  context,
-                                                  animation,
-                                                  secondaryAnimation,
-                                                ) => WelcomePage(),
-                                            transitionsBuilder:
-                                                (
-                                                  context,
-                                                  animation,
-                                                  secondaryAnimation,
-                                                  child,
-                                                ) {
-                                                  const begin = Offset(
-                                                    0.0,
-                                                    1.0,
-                                                  );
-                                                  const end = Offset.zero;
-                                                  const curve = Curves.ease;
-                                                  var tween =
-                                                      Tween(
-                                                        begin: begin,
-                                                        end: end,
-                                                      ).chain(
-                                                        CurveTween(
-                                                          curve: curve,
-                                                        ),
-                                                      );
-                                                  return SlideTransition(
-                                                    position: animation.drive(
-                                                      tween,
-                                                    ),
-                                                    child: child,
-                                                  );
-                                                },
-                                            transitionDuration: Duration(
-                                              milliseconds: 500,
-                                            ),
+                                  Navigator.of(context).pushReplacement(
+                                    PageRouteBuilder(
+                                      pageBuilder:
+                                          (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                          ) => WelcomePage(),
+                                      transitionsBuilder:
+                                          (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                          child,
+                                          ) {
+                                        const begin = Offset(
+                                          0.0,
+                                          1.0,
+                                        );
+                                        const end = Offset.zero;
+                                        const curve = Curves.ease;
+                                        var tween =
+                                        Tween(
+                                          begin: begin,
+                                          end: end,
+                                        ).chain(
+                                          CurveTween(
+                                            curve: curve,
                                           ),
                                         );
+                                        return SlideTransition(
+                                          position: animation.drive(
+                                            tween,
+                                          ),
+                                          child: child,
+                                        );
                                       },
+                                      transitionDuration: Duration(
+                                        milliseconds: 500,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 child: AutoSizeText(
                                   "Login",
                                   minFontSize: 16,
